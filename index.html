@@ -512,7 +512,9 @@
             <div id="checkout-form" style="display:none; border-top:1px solid #eee; padding-top:20px; margin-top:15px;">
                 <div class="input-group"><input type="text" id="c-name" placeholder="Họ tên (*)"></div>
                 <div class="input-group"><input type="tel" id="c-phone" placeholder="Số điện thoại (*)"></div>
-                <div class="input-group"><input type="email" id="c-email" placeholder="Email nhận thông tin (*)"></div> <div class="input-group">
+                <div class="input-group"><input type="email" id="c-email" placeholder="Email nhận thông tin (*)"></div> 
+                
+                <div class="input-group">
                     <select id="c-province" onchange="renderCart()">
                         <option value="">-- Chọn Tỉnh/Thành phố (*) --</option>
                         <option value="Thành phố Huế">Thành phố Huế</option>
@@ -551,10 +553,15 @@
                         <option value="Tỉnh Cao Bằng">Tỉnh Cao Bằng</option>
                     </select>
                 </div>
+                
                 <div class="ship-note">(* Phí ship sẽ thay đổi tùy theo Tỉnh/Thành và cân nặng)</div>
 
-                <div class="input-group"><input type="text" id="c-address" placeholder="Địa chỉ cụ thể (Số nhà, đường...) (*)"></div>
-                
+                <div class="input-group" style="display:flex; gap:10px;">
+                    <input type="text" id="c-district" placeholder="Quận/Huyện (*)" style="flex:1">
+                    <input type="text" id="c-ward" placeholder="Phường/Xã (*)" style="flex:1">
+                </div>
+
+                <div class="input-group"><input type="text" id="c-address" placeholder="Số nhà, tên đường (*)"></div>
                 <label style="font-weight:bold">Thanh toán:</label>
                 <div style="margin:10px 0;">
                     <label><input type="radio" name="payment" value="Tiền mặt" checked onchange="updateQRInfo()"> Tiền mặt</label>
@@ -765,15 +772,26 @@
         const name = document.getElementById('c-name').value;
         const phone = document.getElementById('c-phone').value;
         const email = document.getElementById('c-email').value; // LẤY EMAIL
+        
+        // START: LẤY 4 TRƯỜNG ĐỊA CHỈ
         const province = document.getElementById('c-province').value;
-        const addressDetail = document.getElementById('c-address').value;
+        const district = document.getElementById('c-district').value;
+        const ward = document.getElementById('c-ward').value;
+        const street = document.getElementById('c-address').value;
+        // END: LẤY 4 TRƯỜNG ĐỊA CHỈ
+
         const payment = document.querySelector('input[name="payment"]:checked').value;
 
-        if(!name || !phone || !province || !addressDetail) { 
-            alert("Vui lòng điền đủ thông tin!"); return; 
+        // START: KIỂM TRA ĐIỀN ĐỦ
+        if(!name || !phone || !province || !district || !ward || !street) { 
+            alert("Vui lòng điền đủ thông tin địa chỉ!"); return; 
         }
+        // END: KIỂM TRA ĐIỀN ĐỦ
 
-        const fullAddress = `${addressDetail}, ${province}`;
+        // START: GHÉP ĐỊA CHỈ (Để Bot dễ đọc, định dạng: Số nhà, Phường, Quận, Tỉnh)
+        const fullAddress = `${street}, ${ward}, ${district}, ${province}`;
+        // END: GHÉP ĐỊA CHỈ
+
         const btn = document.querySelector('.btn-submit');
         const oldText = btn.innerText;
         btn.innerText = "ĐANG GỬI...";
@@ -783,8 +801,8 @@
         const data = {
             name: name,
             phone: phone,
-            address: fullAddress,
-            email: email, // GỬI EMAIL LÊN SERVER
+            address: fullAddress, // Gửi địa chỉ đã ghép
+            email: email, 
             paymentMethod: payment,
             order: cart.map(i => i.name).join(", "),
             total: totalStr 
@@ -808,11 +826,17 @@
             document.getElementById('coupon-msg').innerText = "";
             renderCart();
             toggleCart();
+            
+            // START: RESET FORM
             document.getElementById('c-name').value = '';
             document.getElementById('c-phone').value = '';
-            document.getElementById('c-email').value = ''; // Reset ô Email
-            document.getElementById('c-address').value = '';
+            document.getElementById('c-email').value = ''; 
             document.getElementById('c-province').value = '';
+            document.getElementById('c-district').value = ''; // Reset quận
+            document.getElementById('c-ward').value = '';     // Reset phường
+            document.getElementById('c-address').value = '';  // Reset đường
+            // END: RESET FORM
+            
             btn.innerText = oldText;
             btn.disabled = false;
         }).catch(err => {
