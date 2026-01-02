@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sản phẩm | HUEphile</title>
+    <style>
+        /* --- CSS GIỮ NGUYÊN --- */
+        :root { --primary-color: #000; --accent-color: #bfa05f; --bg-color: #fff; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; padding: 0; color: #333; line-height: 1.6; }
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+        header { text-align: center; padding: 30px; border-bottom: 1px solid #eee; }
+        .brand-name { font-size: 2.5rem; font-weight: bold; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; }
+        .product-card { border: 1px solid #eee; display: flex; flex-direction: column; transition: 0.3s; }
+        .product-card:hover { box-shadow: 0 10px 20px rgba(0,0,0,0.1); transform: translateY(-5px); }
+        .product-img-container { width: 100%; height: 250px; overflow: hidden; background: #f9f9f9; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .product-card:hover .product-img { transform: scale(1.05); }
+        .product-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+        .product-name { font-weight: bold; margin-bottom: 5px; font-size: 1.1rem; }
+        .product-desc { font-size: 0.85rem; color: #666; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-price { color: var(--accent-color); font-weight: bold; margin-top: auto; }
+        .btn-buy { width: 100%; padding: 10px; border: 1px solid #000; background: #fff; cursor: pointer; margin-top: 10px; text-transform: uppercase; font-size: 0.9rem; }
+        .btn-buy:hover { background: #000; color: #fff; }
+        
+        /* CSS GIỎ HÀNG & FORM */
+        .cart-float { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; z-index: 999; }
+        .cart-count { position: absolute; top: 0; right: 0; background: red; font-size: 12px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: #fff; width: 90%; max-width: 500px; padding: 25px; border-radius: 8px; max-height: 90vh; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 10px 0; }
+        .input-group { margin-bottom: 15px; }
+        .input-group input, .input-group select { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-submit { width: 100%; padding: 12px; background: var(--accent-color); color: #fff; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* CSS KHU VỰC CHUYỂN KHOẢN */
+        #qr-section { display: none; text-align: center; margin-top: 15px; border: 2px solid #bfa05f; padding: 15px; background: #fffbf0; border-radius: 8px; }
+        #qr-image { width: 200px; display: block; margin: 0 auto 10px; }
+        .btn-bank-form { 
+            display: block; width: 100%; text-align: center; padding: 12px; 
+            background: #2196F3; color: white; text-decoration: none; border-radius: 4px;
+            font-weight: bold; margin-top: 10px; box-sizing: border-box;
+            border: 1px solid #1976D2; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .btn-bank-form:hover { background: #1976D2; }
+
+        /* CSS Bảng phí ship & Coupon */
+        .price-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.95rem; }
+        .price-row.total { font-weight: bold; font-size: 1.2rem; color: #bfa05f; border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px; }
+        .ship-note { font-size: 0.8rem; color: #666; font-style: italic; margin-bottom: 15px; }
+        
+        /* CSS COUPON */
+        .coupon-box { display: flex; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+        .coupon-box input { flex-grow: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-apply { padding: 8px 15px; background: #333; color: #fff; border: none; cursor: pointer; border-radius: 4px; }
+        .btn-apply:hover { background: #000; }
+        #coupon-msg { font-size: 0.85rem; margin-top: 5px; display: block; }
+        .discount-row { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-name">HUEphile</div>
+        <p>Chuyện người yêu Huế</p>
+    </header>
+
+    <div class="container">
+        <h2 style="text-align:center; margin-bottom: 40px;">Danh Sách Sản Phẩm</h2>
+        <div class="product-grid">
+            <div class="product-card" data-weight="250">
+                <div class="product-img-container"><img src="https://banhlochuebavan.com/wp-content/uploads/2023/06/me-xung-gion-hue-7.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Mè Xửng Giòn Thiên Hương</div>
+                    <div class="product-desc">Có người bảo người Huế sống chậm, có lẽ vì họ quen nhâm nhi thanh mè xửng này.</div>
+                    <div class="product-price">20.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="250">
+                <div class="product-img-container"><img src="https://daivietourist.vn/wp-content/uploads/2025/04/keo-me-xung-hue-17.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Mè Xửng Giòn Tài Ký</div>
+                    <div class="product-desc">Món quà của sự tỉ mẩn. Từng hạt mè vàng óng được rang canh lửa sao cho vừa chín tới.</div>
+                    <div class="product-price">23.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://dacsanlamqua.com/wp-content/uploads/2021/07/Keo-me-xung-mem-thien-huong-hue.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Mè Xửng Dẻo Thiên Hương</div>
+                    <div class="product-desc">"Dai như mè xửng". Vị ngọt sắc sảo của đường, cái bùi béo của đậu phộng.</div>
+                    <div class="product-price">25.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://dacsanngondanang.com/wp-content/uploads/2022/08/Me-xung-Lam-Anh-hop.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Mè Xửng Dẻo Gừng Lâm Anh</div>
+                    <div class="product-desc">Huế những ngày mưa dầm dề lạnh thấu da, không gì ấm lòng hơn miếng mè xửng gừng.</div>
+                    <div class="product-price">21.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="500">
+                <div class="product-img-container"><img src="https://dacsanhue24h.com/wp-content/uploads/2020/03/Tom-chua-2.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Tôm Chua Cô Ri</div>
+                    <div class="product-desc">Một bản giao hưởng của triết lý Âm Dương. Con tôm đất đỏ au (Dương) ủ mình trong riềng.</div>
+                    <div class="product-price">65.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="500">
+                <div class="product-img-container"><img src="https://tourhue.vn/wp-content/uploads/2024/07/tom-chua-hue-ba-due.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Tôm Chua Bà Duệ</div>
+                    <div class="product-desc">Món ngon từng được chọn để "Tiến Vua". Vị chua thanh, cay, ngọt, mặn hòa quyện.</div>
+                    <div class="product-price">68.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="500">
+                <div class="product-img-container"><img src="https://mambadue.vn/wp-content/uploads/2021/09/mam-ruoc-ba-due.png" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Mắm Ruốc Bà Duệ</div>
+                    <div class="product-desc">"Ăn mắm thấm lâu". Hũ mắm mặn mòi gói ghém cả vị biển Thuận An.</div>
+                    <div class="product-price">40.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="500">
+                <div class="product-img-container"><img src="https://mambadue.vn/wp-content/uploads/2021/09/mam-ro.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Mắm Rò Bà Duệ</div>
+                    <div class="product-desc">Từ những con cá kìm tươi rói nhảy tanh tách, qua bàn tay khéo léo của các O, các Mệ.</div>
+                    <div class="product-price">39.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="200">
+                <div class="product-img-container"><img src="https://quangonxuhue.com/wp-content/uploads/2022/11/banh-ep-kho-thuan-an-hue.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Bánh Ép Khô Gia Di</div>
+                    <div class="product-desc">Sinh ra từ những gánh hàng rong góc phố. Từng chiếc bánh được ép thủ công trên khuôn gang.</div>
+                    <div class="product-price">35.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="1000">
+                <div class="product-img-container"><img src="https://bazantravel.com/cdn/medias/uploads/74/74698-gioi-thieu-banh-bot-loc-hue.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Bánh Bột Lọc O Ri (Đông Lạnh)</div>
+                    <div class="product-desc">Nhìn chiếc bánh trong vắt lộ rõ con tôm đỏ au bên trong, người ta thấy cả sự tinh tế.</div>
+                    <div class="product-price">55.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="200">
+                <div class="product-img-container"><img src="https://banhlochuebavan.com/wp-content/uploads/2023/09/Cach-pha-tra-cung-dinh-Hue.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Trà Cung Đình An Miên</div>
+                    <div class="product-desc">Ngày xưa, chỉ bậc Đế vương mới được thưởng thức thứ nước thảo mộc 16 vị này.</div>
+                    <div class="product-price">60.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="200">
+                <div class="product-img-container"><img src="https://banhlochuebavan.com/wp-content/uploads/2023/04/tra-hoa-sen-tinh-tam-hue.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Trà Sen Tịnh Tâm</div>
+                    <div class="product-desc">Loài sen ngự dụng ướp vào trà xanh tạo nên hương thơm thanh khiết, thoát tục.</div>
+                    <div class="product-price">62.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="200">
+                <div class="product-img-container"><img src="https://sp-ao.shortpixel.ai/client/q_lossy,ret_img,w_324,h_243/https://quahueonline.com/wp-content/uploads/2019/12/Dac-san-Hue-Tra-va-Loc-Mai-tui-loc-1-324x243.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Trà Vả Cố Đô</div>
+                    <div class="product-desc">Từ quả Vả chát chúa, xù xì mọc nơi góc vườn, người Huế đã biến hóa thành thức trà ngọt hậu.</div>
+                    <div class="product-price">63.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="100">
+                <div class="product-img-container"><img src="https://phannubatunghue.vn/upload/images/quy-trinh-phoi-phan-tai-co-so-phan-nu-ba-tung-hue.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Phấn Nụ Ngừa Mụn Bà Tùng</div>
+                    <div class="product-desc">Bí quyết nghìn năm từ chốn thâm cung. Viên phấn nụ trắng ngần này không chỉ trị mụn.</div>
+                    <div class="product-price">150.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="100">
+                <div class="product-img-container"><img src="https://phannubatunghue.vn/upload/images/phan-nu-ba-tung-phan-nu-tre-em.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Phấn Nụ Lột Thẹo Bà Tùng</div>
+                    <div class="product-desc">Viên phấn nhỏ bé mang sứ mệnh chữa lành những vết dấu thời gian trên làn da.</div>
+                    <div class="product-price">155.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="100">
+                <div class="product-img-container"><img src="https://product.hstatic.net/200000719021/product/upload_a04ba8c2477b4b0aade9cb3237f34050.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Phấn Nụ Chống Lão Hóa</div>
+                    <div class="product-desc">"Nụ tầm xuân nở ra xanh biếc...". Viên phấn nụ là sự phản kháng dịu dàng.</div>
+                    <div class="product-price">160.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="100">
+                <div class="product-img-container"><img src="https://product.hstatic.net/200000719021/product/phan_ma_hong_phien_ban_moi-01_87238cf37b5442d78848a9d88b6c5652.png" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Phấn Má Hồng Dạng Nén</div>
+                    <div class="product-desc">Không rực rỡ như mỹ phẩm phương Tây, phấn nụ má hồng mang sắc màu e ấp.</div>
+                    <div class="product-price">116.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="150">
+                <div class="product-img-container"><img src="https://quahueonline.com/wp-content/uploads/2019/12/Tinh-d%E1%BA%A7u-tr%C3%A0m-Hu%E1%BA%BF-Kim-Vui-20ml-1.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Tinh Dầu Tràm Kim Vui</div>
+                    <div class="product-desc">Mùi hương nồng ấm ấy là "mùi của Mạ". HUEphile gửi bạn chai dầu này như gửi một chiếc chăn ấm.</div>
+                    <div class="product-price">77.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="150">
+                <div class="product-img-container"><img src="https://www.cotrang.org/public/images/tin_dang/6/87_tinh-dau-tram-hue-bk-5.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Tinh Dầu Tràm Linh An</div>
+                    <div class="product-desc">Chắt chiu từ những cánh rừng tràm gió cát trắng Lộc Thủy.</div>
+                    <div class="product-price">66.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="200">
+                <div class="product-img-container"><img src="https://medoan.vn/wp-content/uploads/2023/10/1_Tinh-dau-Sa-chanh-Me-Doan-100ml-.webp" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Dầu Xoa Bóp Mệ Đoan</div>
+                    <div class="product-desc">Chai dầu xoa bóp này gói trọn đạo Hiếu, được ngâm ủ từ dược liệu quý A Lưới.</div>
+                    <div class="product-price">15.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="200">
+                <div class="product-img-container"><img src="https://tantrico.vn/wp-content/uploads/2025/05/2023-01-14-768x576.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Túi Lọc Gội Đầu Kim Vui</div>
+                    <div class="product-desc">Hương bồ kết nướng, hương nhu, sả chanh... quyện vào nhau, gột rửa mọi bụi trần.</div>
+                    <div class="product-price">19.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="200">
+                <div class="product-img-container"><img src="https://quahueonline.com/wp-content/uploads/2021/08/Tui-loc-goi-dau-bo-ket-thao-moc-cung-dinh-Hue-Kim-Vui-2.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Túi Gội Đầu Kim Xuân</div>
+                    <div class="product-desc">Hành trình tìm về với thiên nhiên nguyên bản. Mái tóc được nuôi dưỡng bằng cây cỏ quê nhà.</div>
+                    <div class="product-price">19.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://airportcargo.vn/wp-content/uploads/2022/09/non_la.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Nón Lá Bài Thơ Dì Vân</div>
+                    <div class="product-desc">Soi chiếc nón lên trời xanh, bạn sẽ thấy những vần thơ và bóng cầu Tràng Tiền ẩn hiện.</div>
+                    <div class="product-price">100.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://madebymaries.com/wp-content/uploads/2021/10/1-1.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Nón Lá Vẽ Tay</div>
+                    <div class="product-desc">Các nghệ nhân đã thu nhỏ cả kinh thành, cả dòng Hương Giang đặt lên vành nón.</div>
+                    <div class="product-price">100.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="400">
+                <div class="product-img-container"><img src="https://product.hstatic.net/1000399027/product/bl03-3_3cf644c3e43143c08cdd5d6a64ab0371_master.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Rổ Tre Bao La</div>
+                    <div class="product-desc">Từ những cây tre gai góc, bàn tay người thợ đã chuốt nên những nan tre mềm mại.</div>
+                    <div class="product-price">100.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://pro-check.vn/FileUploads/den-3-tang.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Đèn Lồng Mây Tre</div>
+                    <div class="product-desc">Chiếc đèn không chỉ để thắp sáng, nó thắp lên sự hoài cổ, đưa tâm hồn tìm về bình yên.</div>
+                    <div class="product-price">40.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="1000">
+                <div class="product-img-container"><img src="https://brandgift.vn/wp-content/uploads/2023/10/binh-hoa-gom-su-bat-trang-dang-choe-hoa-tiet-hoa-sen-xanh-ve-vang-kim.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Bình Hoa Sen/Cúc Bát Tràng</div>
+                    <div class="product-desc">Dáng bình thanh thoát với họa tiết Sen - Cúc mang hơi thở cung đình.</div>
+                    <div class="product-price">500.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="800">
+                <div class="product-img-container"><img src="https://anthotuc.vn/wp-content/uploads/2021/05/truc-lam-600x600.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Bộ Ấm Trà Phước Tích</div>
+                    <div class="product-desc">Gốm Phước Tích chinh phục người dùng bằng chất sành đen bóng như ngọc.</div>
+                    <div class="product-price">600.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://cdn.img.kevesko.vn/img/846/12/8461220_0:115:2731:1935_600x0_80_0_0_b59b229a82b76575a998ffac1e0115ea.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Hộp Trang Sức Pháp Lam</div>
+                    <div class="product-desc">Đỉnh cao của nghệ thuật lửa và màu sắc triều Nguyễn.</div>
+                    <div class="product-price">1.000.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="500">
+                <div class="product-img-container"><img src="https://mockhang.vn/wp-content/uploads/2025/10/lu-truc-dong-phap-lam-xong-tram-cao-10-cm-2.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Lư Xông Trầm Pháp Lam</div>
+                    <div class="product-desc">Khi làn khói trầm hương tỏa ra từ chiếc lư Pháp Lam tinh xảo, mọi phiền não dường như tan biến.</div>
+                    <div class="product-price">600.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="50">
+                <div class="product-img-container"><img src="https://maypaperflower.com/post-images/4808131999370316852613532162715625629250414n_638833891765038806.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Hoa Sen Giấy Thanh Tiên</div>
+                    <div class="product-desc">"Hoa sen không tàn". Người làng Thanh Tiên đã gửi gắm khát vọng về cái đẹp vĩnh cửu.</div>
+                    <div class="product-price">19.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="500">
+                <div class="product-img-container"><img src="https://cophuchoangthanhhue.com/wp-content/uploads/2025/06/HUNG-1994-2-scaled-e1749647312710.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Áo Nhật Bình Đỏ (Fullset)</div>
+                    <div class="product-desc">Biểu tượng của quyền uy và phẩm hạnh. Khoác lên mình Nhật Bình là sống lại giấc mơ vàng son.</div>
+                    <div class="product-price">1.500.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="400">
+                <div class="product-img-container"><img src="https://cotranghoangcung.com/wp-content/uploads/2021/12/145007413_3817171001700029_598781068826287243_n.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Áo Tấc Nam Vải Sa Hàn</div>
+                    <div class="product-desc">Chiếc áo ngũ thân tay thụng là hiện thân của sự đĩnh đạc, khiêm cung.</div>
+                    <div class="product-price">1.200.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://lamia.com.vn/storage/ao-dai/ao-dai-cach-tan-tay-lo-phoi-ta-ngan-ad191-4.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Áo Dài Lụa Minh Tân</div>
+                    <div class="product-desc">Tà áo dài lụa tím Huế đẹp như một bài thơ buồn man mác. Lụa mềm rủ xuống, tôn vinh nét đẹp.</div>
+                    <div class="product-price">1.800.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="100">
+                <div class="product-img-container"><img src="https://tnj.vn/img/cms/Lac-bac-cho-be/LTT0157/lac-bac-cho-be-khac-ten-LTT0157-1-1.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Kiềng Bạc Kế Môn</div>
+                    <div class="product-desc">Tinh hoa của làng nghề kim hoàn 300 năm tuổi. Chiếc kiềng bạc chạm trổ tinh xảo.</div>
+                    <div class="product-price">2.000.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://madebymaries.com/wp-content/uploads/2020/12/5-1024x1024.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Túi Thổ Cẩm Zèng A Lưới</div>
+                    <div class="product-desc">Mỗi hoa văn trên túi là một câu chuyện về núi rừng. Mang vẻ đẹp hoang sơ, phóng khoáng.</div>
+                    <div class="product-price">180.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="300">
+                <div class="product-img-container"><img src="https://images2.thanhnien.vn/zoom/1200_630/528068263637045248/2024/3/29/edit-etsy-1711683080408854092186-292-0-1470-2250-crop-17116922791681688924529.jpeg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Guốc Mộc Vẽ Sen</div>
+                    <div class="product-desc">Tiếng guốc mộc khua vang gợi nhớ về những bước chân e ấp xưa.</div>
+                    <div class="product-price">200.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="1200">
+                <div class="product-img-container"><img src="https://i.pinimg.com/736x/7b/a8/6b/7ba86bc36126273b370995ffe9aa283f.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Set Quà HUEphile Signature</div>
+                    <div class="product-desc">Chúng mình "gói ghém hương vị Cố đô". Mở hộp ra là thấy Huế, thấy tình, thấy thương.</div>
+                    <div class="product-price">800.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="1000">
+                <div class="product-img-container"><img src="https://i.pinimg.com/736x/93/b0/50/93b050b109ad45f185314744d1f231ae.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Set Quà Bí Quyết Cung Đình</div>
+                    <div class="product-desc">Liệu trình chăm sóc toàn diện để người phụ nữ của bạn luôn rạng ngời khí chất đài các.</div>
+                    <div class="product-price">800.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="1000">
+                <div class="product-img-container"><img src="https://i.pinimg.com/736x/94/10/40/94104034e1770d0fb16f172b0179a24f.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Set Quà Trà Chiều An Yên</div>
+                    <div class="product-desc">Một ấm trà thơm, một chút bánh ngọt, và một khoảng lặng để lòng mình chậm lại.</div>
+                    <div class="product-price">800.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+            <div class="product-card" data-weight="1200">
+                <div class="product-img-container"><img src="https://i.pinimg.com/736x/85/d0/f8/85d0f863fe2a567a2832fccb72bbd1ef.jpg" class="product-img"></div>
+                <div class="product-info">
+                    <div class="product-name">Set Quà Vị Ngon Của Mệ</div>
+                    <div class="product-desc">Gói trọn nỗi nhớ nhà, nhớ bếp lửa hồng của Mệ. Những món ngon dân dã mặn mòi.</div>
+                    <div class="product-price">800.000 đ</div>
+                    <button class="btn-buy">Thêm vào giỏ</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="cart-float" onclick="toggleCart()">
+        🛒 <span class="cart-count" id="cart-count">0</span>
+    </div>
+
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <h3 style="display:flex; justify-content:space-between">
+                Giỏ Hàng <span onclick="toggleCart()" style="cursor:pointer">&times;</span>
+            </h3>
+            
+            <div id="cart-items"><p>Giỏ trống</p></div>
+            
+            <div id="cart-summary" style="display:none;">
+                <div class="coupon-box">
+                    <input type="text" id="coupon-code" placeholder="Nhập mã giảm giá">
+                    <button class="btn-apply" onclick="applyCoupon()">Áp dụng</button>
+                </div>
+                <span id="coupon-msg" style="margin-bottom:10px;"></span>
+
+                <div class="price-row"><span>Tạm tính:</span> <span id="cart-subtotal">0 đ</span></div>
+                <div class="price-row"><span>Giảm giá:</span> <span id="discount-amount" class="discount-row">0 đ</span></div>
+                <div class="price-row"><span>Phí vận chuyển (<span id="total-weight-display">0</span>g):</span> <span id="shipping-fee">0 đ</span></div>
+                <div class="price-row total"><span>Tổng thanh toán:</span> <span id="cart-total">0 đ</span></div>
+            </div>
+
+            <div id="checkout-form" style="display:none; border-top:1px solid #eee; padding-top:20px; margin-top:15px;">
+                <div class="input-group"><input type="text" id="c-name" placeholder="Họ tên (*)"></div>
+                <div class="input-group"><input type="tel" id="c-phone" placeholder="Số điện thoại (*)"></div>
+                <div class="input-group"><input type="email" id="c-email" placeholder="Email nhận thông tin (*)"></div> <div class="input-group">
+                    <select id="c-province" onchange="renderCart()">
+                        <option value="">-- Chọn Tỉnh/Thành phố (*) --</option>
+                        <option value="Thành phố Huế">Thành phố Huế</option>
+                        <option value="Thành phố Đà Nẵng">Thành phố Đà Nẵng</option>
+                        <option value="Thành phố Hà Nội">Thành phố Hà Nội</option>
+                        <option value="Thành phố Hồ Chí Minh">Thành phố Hồ Chí Minh</option>
+                        <option value="Thành phố Hải Phòng">Thành phố Hải Phòng</option>
+                        <option value="Thành phố Cần Thơ">Thành phố Cần Thơ</option>
+                        <option value="Tỉnh Tuyên Quang">Tỉnh Tuyên Quang</option>
+                        <option value="Tỉnh Lào Cai">Tỉnh Lào Cai</option>
+                        <option value="Tỉnh Thái Nguyên">Tỉnh Thái Nguyên</option>
+                        <option value="Tỉnh Phú Thọ">Tỉnh Phú Thọ</option>
+                        <option value="Tỉnh Bắc Ninh">Tỉnh Bắc Ninh</option>
+                        <option value="Tỉnh Hưng Yên">Tỉnh Hưng Yên</option>
+                        <option value="Tỉnh Ninh Bình">Tỉnh Ninh Bình</option>
+                        <option value="Tỉnh Quảng Trị">Tỉnh Quảng Trị</option>
+                        <option value="Tỉnh Quảng Ngãi">Tỉnh Quảng Ngãi</option>
+                        <option value="Tỉnh Gia Lai">Tỉnh Gia Lai</option>
+                        <option value="Tỉnh Khánh Hoà">Tỉnh Khánh Hoà</option>
+                        <option value="Tỉnh Lâm Đồng">Tỉnh Lâm Đồng</option>
+                        <option value="Tỉnh Đắk Lắk">Tỉnh Đắk Lắk</option>
+                        <option value="Tỉnh Đồng Nai">Tỉnh Đồng Nai</option>
+                        <option value="Tỉnh Tây Ninh">Tỉnh Tây Ninh</option>
+                        <option value="Tỉnh Vĩnh Long">Tỉnh Vĩnh Long</option>
+                        <option value="Tỉnh Đồng Tháp">Tỉnh Đồng Tháp</option>
+                        <option value="Tỉnh Cà Mau">Tỉnh Cà Mau</option>
+                        <option value="Tỉnh An Giang">Tỉnh An Giang</option>
+                        <option value="Tỉnh Lai Châu">Tỉnh Lai Châu</option>
+                        <option value="Tỉnh Điện Biên">Tỉnh Điện Biên</option>
+                        <option value="Tỉnh Sơn La">Tỉnh Sơn La</option>
+                        <option value="Tỉnh Lạng Sơn">Tỉnh Lạng Sơn</option>
+                        <option value="Tỉnh Quảng Ninh">Tỉnh Quảng Ninh</option>
+                        <option value="Tỉnh Thanh Hoá">Tỉnh Thanh Hoá</option>
+                        <option value="Tỉnh Nghệ An">Tỉnh Nghệ An</option>
+                        <option value="Tỉnh Hà Tĩnh">Tỉnh Hà Tĩnh</option>
+                        <option value="Tỉnh Cao Bằng">Tỉnh Cao Bằng</option>
+                    </select>
+                </div>
+                <div class="ship-note">(* Phí ship sẽ thay đổi tùy theo Tỉnh/Thành và cân nặng)</div>
+
+                <div class="input-group"><input type="text" id="c-address" placeholder="Địa chỉ cụ thể (Số nhà, đường...) (*)"></div>
+                
+                <label style="font-weight:bold">Thanh toán:</label>
+                <div style="margin:10px 0;">
+                    <label><input type="radio" name="payment" value="Tiền mặt" checked onchange="updateQRInfo()"> Tiền mặt</label>
+                    <label style="margin-left:15px"><input type="radio" name="payment" value="Chuyển khoản" onchange="updateQRInfo()"> Chuyển khoản</label>
+                </div>
+
+                <div id="qr-section">
+                    <p style="color:red; font-weight:bold; margin:0">Quét mã để thanh toán</p>
+                    <img id="qr-image" src="" alt="QR Code">
+                    <p style="font-size:0.9rem; margin-bottom:5px">Nội dung: <b id="ck-content">...</b></p>
+                    
+                    <a id="btn-open-form" href="#" target="_blank" class="btn-bank-form" onclick="openBankForm(event)">
+                        👉 XÁC NHẬN ĐÃ CHUYỂN KHOẢN
+                    </a>
+                    <p style="font-size:0.8rem; color:red; margin-top:5px; font-style:italic">
+                        (Bấm nút trên để Form tự điền số tiền và nội dung cho bạn)
+                    </p>
+                </div>
+
+                <button class="btn-submit" onclick="submitOrder()">GỬI ĐƠN HÀNG</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ============================================================
+    // CẤU HÌNH LIÊN KẾT
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxrhABc_hJlgWr9UwIirNd57tjuJx_Te4DDOBUkXFp9cf00dqEfYmxfcw2u_gCPHKU/exec"; 
+    const GOOGLE_FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSePKtRRe-Pxgdnr-p4bZcFlPv3YNPhyuCP0E-w8z58JvlggtQ/viewform";
+    const ID_O_NOI_DUNG = "2064406880";
+    const ID_O_SO_TIEN = "444675130";
+    const MY_BANK = "MB"; 
+    const MY_STK = "0862743919"; 
+    const MY_NAME = "HUEPHILE"; 
+    // ============================================================
+
+    let cart = [];
+    let currentCoupon = ""; // Biến lưu mã giảm giá hiện tại
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const btns = document.querySelectorAll('.btn-buy');
+        btns.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const card = e.target.closest('.product-card');
+                const name = card.querySelector('.product-name').innerText;
+                const priceStr = card.querySelector('.product-price').innerText;
+                const price = parseInt(priceStr.replace(/\D/g, ''));
+                const weight = parseInt(card.getAttribute('data-weight') || 200);
+                
+                addToCart(name, price, weight);
+            });
+        });
+        document.getElementById('c-phone').addEventListener('keyup', updateQRInfo);
+    });
+
+    function addToCart(name, price, weight) {
+        cart.push({name, price, weight});
+        renderCart();
+    }
+
+    function removeCart(i) { cart.splice(i, 1); renderCart(); }
+    function toggleCart() { 
+        const modal = document.getElementById('cartModal');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    // --- HÀM XỬ LÝ COUPON ---
+    function applyCoupon() {
+        const codeInput = document.getElementById('coupon-code');
+        const code = codeInput.value.trim().toUpperCase();
+        const msg = document.getElementById('coupon-msg');
+
+        if (code === "CHAOBANMOI" || code === "XUANVE" || code === "SINHNHATANLANH") {
+            currentCoupon = code;
+            msg.style.color = "green";
+            msg.innerText = "Áp dụng mã thành công!";
+        } else if (code === "") {
+            currentCoupon = "";
+            msg.innerText = "";
+        } else {
+            currentCoupon = "";
+            msg.style.color = "red";
+            msg.innerText = "Mã giảm giá không hợp lệ!";
+        }
+        renderCart(); // Tính toán lại tiền
+    }
+
+    // --- LOGIC TÍNH PHÍ SHIP (CẬP NHẬT THEO DANH SÁCH MỚI) ---
+    function getShippingFee(province, totalWeight) {
+        if (!province) return 0;
+        
+        // Nếu dùng mã CHAOBANMOI -> Miễn ship
+        if (currentCoupon === "CHAOBANMOI") return 0;
+
+        let baseFee = 35000; // Mặc định: Tỉnh xa/Khác
+
+        // 1. Nhóm Nội thành/Gần (Huế) - 15k
+        if (province === "Thành phố Huế") {
+            baseFee = 15000;
+        } 
+        // 2. Nhóm Lân cận (Đà Nẵng) - 25k (Quảng Nam đã sáp nhập vào ĐN nên tính chung)
+        else if (province === "Thành phố Đà Nẵng") {
+            baseFee = 25000;
+        }
+        // 3. Nhóm Thành phố lớn (HN, HCM) - 30k
+        else if (province === "Thành phố Hà Nội" || province === "Thành phố Hồ Chí Minh") {
+            baseFee = 30000;
+        }
+        // Các tỉnh còn lại giữ nguyên 35k
+
+        // Phụ phí trọng lượng
+        let surcharge = 0;
+        if (totalWeight > 1000) {
+            const extraWeight = totalWeight - 1000;
+            surcharge = Math.ceil(extraWeight / 500) * 5000;
+        }
+        return baseFee + surcharge;
+    }
+
+    // --- CẬP NHẬT GIAO DIỆN ---
+    function renderCart() {
+        document.getElementById('cart-count').innerText = cart.length;
+        const container = document.getElementById('cart-items');
+        const form = document.getElementById('checkout-form');
+        const summary = document.getElementById('cart-summary');
+        
+        if(cart.length === 0) {
+            container.innerHTML = "<p>Giỏ trống</p>";
+            form.style.display = "none";
+            summary.style.display = "none";
+            return;
+        }
+
+        let html = "";
+        let subtotal = 0;
+        let totalWeight = 0;
+
+        cart.forEach((item, index) => {
+            subtotal += item.price;
+            totalWeight += item.weight;
+            html += `<div class="cart-item">
+                        <span>${item.name}</span>
+                        <span>${item.price.toLocaleString()} đ <b style="color:red;cursor:pointer" onclick="removeCart(${index})">x</b></span>
+                     </div>`;
+        });
+        container.innerHTML = html;
+
+        // Tính giảm giá
+        let discount = 0;
+        if (currentCoupon === "XUANVE") {
+            discount = subtotal * 0.2; // Giảm 20%
+        } else if (currentCoupon === "SINHNHATANLANH") {
+            discount = subtotal * 0.5; // Giảm 50%
+        }
+
+        const province = document.getElementById('c-province').value;
+        const shipFee = getShippingFee(province, totalWeight);
+        const finalTotal = subtotal - discount + shipFee;
+
+        // Hiển thị
+        document.getElementById('cart-subtotal').innerText = subtotal.toLocaleString() + " đ";
+        document.getElementById('discount-amount').innerText = "-" + discount.toLocaleString() + " đ";
+        document.getElementById('total-weight-display').innerText = totalWeight;
+        document.getElementById('shipping-fee').innerText = (shipFee === 0 && province && currentCoupon === "CHAOBANMOI") ? "Miễn phí (Coupon)" : (shipFee > 0 ? shipFee.toLocaleString() + " đ" : (province ? "Miễn phí" : "---"));
+        
+        document.getElementById('cart-total').innerText = finalTotal.toLocaleString() + " đ";
+
+        summary.style.display = "block";
+        form.style.display = "block";
+        updateQRInfo(); 
+    }
+
+    function updateQRInfo() {
+        const payment = document.querySelector('input[name="payment"]:checked').value;
+        const qrDiv = document.getElementById('qr-section');
+        const totalText = document.getElementById('cart-total').innerText;
+        const total = parseInt(totalText.replace(/\D/g,'')) || 0;
+        
+        if(payment === "Chuyển khoản" && total > 0) {
+            qrDiv.style.display = "block";
+            const phone = document.getElementById('c-phone').value || "SDT";
+            const contentCK = `HUEphile ${phone}`;
+            document.getElementById('ck-content').innerText = contentCK;
+            const qrLink = `https://img.vietqr.io/image/${MY_BANK}-${MY_STK}-compact.jpg?amount=${total}&addInfo=${encodeURIComponent(contentCK)}&accountName=${MY_NAME}`;
+            document.getElementById('qr-image').src = qrLink;
+        } else {
+            qrDiv.style.display = "none";
+        }
+    }
+
+    function openBankForm(e) {
+        e.preventDefault();
+        const totalText = document.getElementById('cart-total').innerText;
+        const total = parseInt(totalText.replace(/\D/g,''));
+        const phone = document.getElementById('c-phone').value;
+
+        if (!phone || phone.length < 9) {
+            alert("Vui lòng nhập Số điện thoại trước!");
+            document.getElementById('c-phone').focus();
+            return;
+        }
+        const contentCK = `HUEphile ${phone}`; 
+        const finalLink = `${GOOGLE_FORM_BASE_URL}?usp=pp_url&entry.${ID_O_SO_TIEN}=${total}&entry.${ID_O_NOI_DUNG}=${encodeURIComponent(contentCK)}`;
+        window.open(finalLink, '_blank');
+    }
+
+    function submitOrder() {
+        const name = document.getElementById('c-name').value;
+        const phone = document.getElementById('c-phone').value;
+        const email = document.getElementById('c-email').value; // LẤY EMAIL
+        const province = document.getElementById('c-province').value;
+        const addressDetail = document.getElementById('c-address').value;
+        const payment = document.querySelector('input[name="payment"]:checked').value;
+
+        if(!name || !phone || !province || !addressDetail) { 
+            alert("Vui lòng điền đủ thông tin!"); return; 
+        }
+
+        const fullAddress = `${addressDetail}, ${province}`;
+        const btn = document.querySelector('.btn-submit');
+        const oldText = btn.innerText;
+        btn.innerText = "ĐANG GỬI...";
+        btn.disabled = true;
+
+        const totalStr = document.getElementById('cart-total').innerText;
+        const data = {
+            name: name,
+            phone: phone,
+            address: fullAddress,
+            email: email, // GỬI EMAIL LÊN SERVER
+            paymentMethod: payment,
+            order: cart.map(i => i.name).join(", "),
+            total: totalStr 
+        };
+
+        fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        }).then(() => {
+            alert("Đặt hàng thành công!");
+            if (payment === "Chuyển khoản") {
+                if(confirm("Đã ghi nhận đơn! Bạn có muốn mở Form xác nhận chuyển khoản ngay không?")) {
+                    document.getElementById('btn-open-form').click();
+                }
+            }
+            cart = [];
+            currentCoupon = ""; // Reset coupon
+            document.getElementById('coupon-code').value = "";
+            document.getElementById('coupon-msg').innerText = "";
+            renderCart();
+            toggleCart();
+            document.getElementById('c-name').value = '';
+            document.getElementById('c-phone').value = '';
+            document.getElementById('c-email').value = ''; // Reset ô Email
+            document.getElementById('c-address').value = '';
+            document.getElementById('c-province').value = '';
+            btn.innerText = oldText;
+            btn.disabled = false;
+        }).catch(err => {
+            alert("Lỗi kết nối!");
+            btn.innerText = oldText;
+            btn.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>
