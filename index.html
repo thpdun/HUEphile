@@ -582,7 +582,8 @@
 <script>
     // ============================================================
     // CẤU HÌNH LIÊN KẾT
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyFEFN5A0YBFywxV3u-TtwdBQqnzuBoZFSYoeWHjTthKAUtwZSAECoq-3RMW85cedo/exec"; 
+    // Nếu bạn cập nhật Script mới, hãy thay URL mới vào đây
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzZX0qwylHVXa-yVlt3OzCZ4dgcjDEOLnx7eZ0NP4kWtcPTIxCVtcxYtbVo8J6S_6M9/exec"; 
     const GOOGLE_FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSePKtRRe-Pxgdnr-p4bZcFlPv3YNPhyuCP0E-w8z58JvlggtQ/viewform";
     const ID_O_NOI_DUNG = "2064406880";
     const ID_O_SO_TIEN = "444675130";
@@ -642,7 +643,7 @@
         renderCart(); // Tính toán lại tiền
     }
 
-    // --- LOGIC TÍNH PHÍ SHIP (CẬP NHẬT THEO DANH SÁCH MỚI) ---
+    // --- LOGIC TÍNH PHÍ SHIP ---
     function getShippingFee(province, totalWeight) {
         if (!province) return 0;
         
@@ -655,7 +656,7 @@
         if (province === "Thành phố Huế") {
             baseFee = 15000;
         } 
-        // 2. Nhóm Lân cận (Đà Nẵng) - 25k (Quảng Nam đã sáp nhập vào ĐN nên tính chung)
+        // 2. Nhóm Lân cận (Đà Nẵng) - 25k
         else if (province === "Thành phố Đà Nẵng") {
             baseFee = 25000;
         }
@@ -663,7 +664,6 @@
         else if (province === "Thành phố Hà Nội" || province === "Thành phố Hồ Chí Minh") {
             baseFee = 30000;
         }
-        // Các tỉnh còn lại giữ nguyên 35k
 
         // Phụ phí trọng lượng
         let surcharge = 0;
@@ -764,7 +764,7 @@
     function submitOrder() {
         const name = document.getElementById('c-name').value;
         const phone = document.getElementById('c-phone').value;
-        const email = document.getElementById('c-email').value; // LẤY EMAIL
+        const email = document.getElementById('c-email').value; 
         const province = document.getElementById('c-province').value;
         const addressDetail = document.getElementById('c-address').value;
         const payment = document.querySelector('input[name="payment"]:checked').value;
@@ -784,7 +784,7 @@
             name: name,
             phone: phone,
             address: fullAddress,
-            email: email, // GỬI EMAIL LÊN SERVER
+            email: email, 
             paymentMethod: payment,
             order: cart.map(i => i.name).join(", "),
             total: totalStr 
@@ -796,7 +796,7 @@
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         }).then(() => {
-            alert("Đặt hàng thành công!");
+            alert("Đặt hàng thành công! Đơn hàng đã được lưu.");
             if (payment === "Chuyển khoản") {
                 if(confirm("Đã ghi nhận đơn! Bạn có muốn mở Form xác nhận chuyển khoản ngay không?")) {
                     document.getElementById('btn-open-form').click();
@@ -810,7 +810,7 @@
             toggleCart();
             document.getElementById('c-name').value = '';
             document.getElementById('c-phone').value = '';
-            document.getElementById('c-email').value = ''; // Reset ô Email
+            document.getElementById('c-email').value = '';
             document.getElementById('c-address').value = '';
             document.getElementById('c-province').value = '';
             btn.innerText = oldText;
